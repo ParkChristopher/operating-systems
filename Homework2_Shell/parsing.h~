@@ -1,0 +1,17 @@
+#ifndef PARSING_H
+#define PARSING_H
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+
+#include "shellRoutines.h"
+
+Arg * constructArgs(int isFork, int isPipe, char redir, char *s);
+int makeargs(char *s, char *** args);
+int checkOperator(char *s);
+int checkPipe(char *s);
+char checkRedir(char * s);
+
+#endif //PARSING_H

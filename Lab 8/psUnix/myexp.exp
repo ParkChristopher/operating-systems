@@ -1,0 +1,6 @@
+name myexp
+comment This experiment contains 5 runs
+run myrun algorithm RR 100 key "RR 100"
+run myrun algorithm RR 25 key "RR 25"
+run myrun algorithm RR 15 key "RR 15"
+run myrun algorithm RR 8 key "RR 8"

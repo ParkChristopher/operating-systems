@@ -1,0 +1,8 @@
+user New User
+quiet
+logdir .
+logfn logfile.html
+imagename gifim
+portable true
+run myrundefault
+exp myexpdefault

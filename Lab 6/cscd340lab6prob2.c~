@@ -1,0 +1,56 @@
+//Chris Park
+
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+pthread_mutex_t read_mutex, write_mutex;
+pthread_cond_t cond_reading, cond_writing, cond_counting;
+int read_count, write_count;
+
+void reader(void *ptr)
+{
+	while(1)
+	{
+	//downmutex
+	//rc = rc + 1
+	//if(rc == 1)
+		//down &db
+	
+	//up mutex
+	
+	printf("Reading database\n");
+	
+	//down mutex
+	//rc = rc - 1
+	//if rc == 0
+		//up &db
+	
+	//up mutex
+	}
+}
+
+void writer(void *ptr)
+{
+	while(1)
+	{
+	//down db
+	printf("Writing database\n");
+	//up db
+	}
+}
+
+int main()
+{
+	pthread_t read1, read2, write;
+	
+	pthread_create(&read1, 0, reader, NULL);
+	pthread_create(&read2, 0, reader, NULL);
+	pthread_create(&write, 0, writer, NULL);
+	
+	pthread_join(read1, NULL);
+	pthread_join(read2, NULL);
+	pthread_join(write, NULL);
+	
+	return 0;
+}

@@ -1,0 +1,263 @@
+//Chris Park CSCD430
+
+#include "linkedList.h"
+#include "utility.h"
+
+LinkedList * linkedList()
+{
+    LinkedList * theList;
+    theList = malloc(sizeof(LinkedList));
+    theList->head = NULL;
+    theList->size = 0;
+    theList->HISTFILECOUNT = 1000;
+    theList->HISTCOUNT = 1000;
+
+    return theList;
+}
+
+Node * buildAliasNode(char *key, char *val)
+{
+	Node * nn = malloc(sizeof(Node));
+	
+	nn->data = buildAlias(key, val);
+	
+	return nn;
+}
+
+Aliases * buildAlias(char *key, char *val)
+{
+	Aliases *alias;
+	
+	strip(key);
+	strip(val);
+	
+	alias = malloc(sizeof(Aliases));
+	alias->key = calloc(strlen(key) + 1, sizeof(char));
+	strcpy(alias->key, key);
+	alias->val = calloc(strlen(val) + 1, sizeof(char));
+	strcpy(alias->val, val);
+	
+	return alias;
+}
+
+Node * buildHistNode(char *s, int num)
+{
+    Node * nn = malloc(sizeof(Node));
+ 
+    nn->data = buildCommand(s, num);
+    
+    return nn;
+}
+
+commands * buildCommand(char *s, int num)
+{
+	int len;
+	char *str = s;
+	commands *comm;
+	
+	strip(str);
+	comm = malloc(sizeof(commands));
+	len = strlen(str);
+	comm->theCommand = malloc((len + 1) * sizeof(char));
+	strcpy(comm->theCommand, str);
+	comm->num = num;
+	
+	return comm;
+}
+
+void sort(LinkedList * theList)
+{
+    int i;
+    Node * temp;
+    void * swap;
+
+    for (i = 0; i < theList->size; i ++)
+        for(temp = theList->head; temp->next != NULL;
+            temp = temp->next)
+                if (strcmp(temp->data, temp->next->data) > 0)
+                {
+                    swap = temp->data;
+                    temp->data = temp->next->data;
+                    temp->next->data = swap;
+                }
+}
+
+void resizeHistory(LinkedList * histList)
+{
+	int res, i;
+	commands * comm;
+	Node * tempNode, *tempNode2;
+	LinkedList * tempList = linkedList();
+	
+	res = histList->size - histList->HISTCOUNT;
+	histList->size = histList->HISTCOUNT;
+	
+	tempNode = histList->head;
+	for(i = 1; i < res; i++)
+		tempNode = tempNode->next;
+	
+	tempNode2 = tempNode->next;
+	tempNode->next = NULL;
+	
+	tempNode = histList->head;
+	tempList->head = tempNode;
+	clearHistList(tempList);
+	
+	histList->head = tempNode2;
+	
+	i = 1;
+	for(tempNode = histList->head; tempNode != NULL; tempNode = tempNode->next)
+	{
+		comm = tempNode->data;
+		comm->num = i;
+		i++;
+	}
+}
+
+void clearHistList(LinkedList * theList)
+{
+    Node * temp;
+    commands *tempcomm;
+
+    while (theList->head != NULL)
+    {    	
+        temp = theList->head;
+        tempcomm = (commands*)temp->data;
+        free(tempcomm->theCommand);
+        free(temp->data);
+        theList->head = theList->head->next;
+        free(temp);
+    }
+    free(theList);
+}
+
+void clearAliasList(LinkedList *theList)
+{
+	Node *temp;
+	Aliases *tempAlias;
+	
+	while(theList->head != NULL)
+	{
+		temp = theList->head;
+		tempAlias = (Aliases*)temp->data;
+		free(tempAlias->key);
+		free(tempAlias->val);
+		free(temp->data);
+		theList->head = theList->head->next;
+		free(temp);
+	}
+	free(theList);
+}
+
+void printList(LinkedList * theList)
+{
+	int i, diff;
+    Node * temp;
+    commands * tempcomm;
+
+    temp = theList->head;
+    
+    if(theList->HISTCOUNT < theList->size)
+    {
+    	diff = theList->size - theList->HISTCOUNT;
+    }
+    else
+    	diff = 0;
+    	
+    for(i = 0; i < diff; i++)
+    	temp = temp->next;
+    
+    while(temp != NULL)
+    {
+    	tempcomm = temp->data;
+        printf("%d %s\n", tempcomm->num, (char*)tempcomm->theCommand);
+        temp = temp->next;
+    }
+    
+}
+
+void addLast(LinkedList * theList, Node * nn)
+{
+    Node * temp;
+
+    if (theList->head == NULL)
+    {
+        addFirst(theList, nn);
+        return;
+    }
+
+    for ( temp = theList->head; temp->next != NULL;
+        temp = temp->next);
+
+    temp->next = nn;
+    nn->next = NULL;
+
+    theList->size++;
+}
+
+void addFirst(LinkedList * theList, Node * nn)
+{
+    nn->next = theList->head;
+    theList->head = nn;
+
+    theList->size++;
+}
+
+void removeItem(LinkedList * theList, Node * nn)
+{
+    Node * temp;
+    Node * remove;
+    Node * previous;
+
+    //Empty List
+    if (theList->size == 0)
+    {
+        printf("List is Empty.\n");
+        return;
+    }
+
+    //Head case
+    if (strcmp(theList->head->data, nn->data) == 0)
+    {
+        remove = theList->head;
+        theList->head = theList->head->next;
+
+        free(remove->data);
+        free(remove);
+        free(nn->data);
+        free(nn);
+
+        theList->size--;
+        printf("Item deleted.\n");
+
+        return;
+    }
+
+    //Standard Case
+    previous = theList->head;
+    for(temp = theList->head; temp != NULL; temp = temp->next)
+    {
+        if (strcmp(temp->data, nn->data) == 0)
+        {
+            remove = temp;
+            previous->next = temp->next;
+
+            free(remove->data);
+            free(remove);
+            free(nn->data);
+            free(nn);
+
+            theList->size--;
+            printf("Item deleted.\n");
+
+            return;
+        }
+
+        previous = temp;
+    }
+
+    free(nn->data);
+    free(nn);
+
+    printf("Item not found.\n");
+}

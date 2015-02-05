@@ -1,0 +1,167 @@
+//Chris Park
+
+#include "parsing.h"
+
+Arg * constructArgs(int isFork, int isPipe, char redir, char *s)
+{
+	char *save_ptr, *redir_ptr, *temp, *args; 
+	char **prePipe = NULL, **postPipe = NULL;
+	Arg *arguments;
+	
+	arguments = malloc(sizeof(Arg));
+	
+	arguments->pipe = isPipe;
+	arguments->amp = isFork;
+	arguments->redirect = redir;
+	
+	temp = calloc(strlen(s) + 1, sizeof(char));
+	strcpy(temp, s);
+	
+	if(isFork)
+		temp = strtok(temp, "&");
+	
+	if(redir != ' ')
+	{
+		if(redir == '<')
+		{
+			temp = strtok_r(temp, "<", &redir_ptr);
+			arguments->filename = strtok_r(NULL, "< ", &redir_ptr);
+		}
+		else if(redir == '>')
+		{
+			temp = strtok_r(temp, ">", &redir_ptr);
+			arguments->filename = strtok_r(NULL, "> ", &redir_ptr);
+		}
+		else if(redir == 'a')
+		{
+			temp = strtok_r(temp, ">> ", &redir_ptr);
+			arguments->filename = strtok_r(NULL, ">>", &redir_ptr);
+		}
+	}
+	else
+		arguments->filename = NULL;
+	
+	if(isPipe)
+	{
+		args = strtok_r(temp, "|", &save_ptr);
+		arguments->prenum = makeargs(args, &prePipe);
+		
+		args = strtok_r(NULL, "|", &save_ptr);
+		
+		if(args != NULL)
+			arguments->postnum = makeargs(args, &postPipe);
+	}
+	else
+	{
+		args = strtok_r(temp, "|", &save_ptr);
+		arguments->prenum = makeargs(args, &prePipe);
+		arguments->postnum = 0;
+	}
+	
+	arguments->prePipe = prePipe;
+	arguments->postPipe = postPipe;
+	
+	free(temp);
+	
+	return arguments;
+}
+
+int makeargs(char *s, char *** args)
+{
+	
+	int count, len, i;
+	char * save_ptr;
+	char *count_ptr = s;
+	char *temp;
+	
+	len = strlen(s);
+	
+	if(s == NULL)
+	{
+		printf("No strings.\n");
+		exit(-1);
+	}
+	
+	count = 0;
+	if(s[0] != ' ')
+		count++;
+	
+	while((count_ptr = strchr(count_ptr, ' ')) != NULL)
+	{
+		count++;
+		count_ptr++;
+	}
+	
+	if(s[len-1] == ' ')
+		count--;
+	
+	(*args) = (char**)calloc(count + 1, sizeof(char*));
+	
+	temp = strtok_r(s, " ", &save_ptr);
+	(*args)[0] = (char*)calloc(strlen(temp) + 1, sizeof(char));
+	strcpy((*args)[0], temp);
+	
+	for(i = 1; i < count; i++)
+	{
+		temp = strtok_r(NULL, " ", &save_ptr);
+		(*args)[i] = (char*)calloc(strlen(temp) + 1, sizeof(char));
+		strcpy((*args)[i], temp);
+	}
+	(*args)[count] = NULL;
+		
+	return count;
+}
+
+int checkOperator(char *s)
+{
+	char *check_ptr = s;
+	
+	check_ptr = strchr(check_ptr, '&');
+	
+	if(check_ptr != NULL)
+		return 1;
+	
+	return 0;
+}
+
+int checkPipe(char *s)
+{
+	char *check_ptr = s;
+	
+	check_ptr = strchr(check_ptr, '|');
+	
+	if(check_ptr != NULL)
+		return 1;
+	
+	return 0;
+}
+
+char checkRedir(char * s)
+{
+	char redirect;
+	char *str = s;
+	char *check_ptr;
+
+	if(strstr(str, ">>"))
+		return 'a';
+	
+	check_ptr = strchr(str, '<');
+	if(check_ptr != NULL)
+	{
+		redirect = *check_ptr;
+
+		if(redirect == '<')
+			return '<';
+	}
+		
+	check_ptr = strchr(str, '>');
+	if(check_ptr != NULL)
+	{
+		redirect = *check_ptr;
+		
+		if(redirect == '>')
+			return '>';
+	}	
+	
+	return ' ';
+}
